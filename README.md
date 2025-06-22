@@ -5,11 +5,12 @@ Make sure to add a .env file in the backend folder with
 ```
 WEATHERSTACK_API_KEY=YOUR_API_KEY
 ```
-Also install
+Also make sure these are installed (included in requirements.txt)
 ```
 httpx
 python-dotenv
 ```
+If you follow the same setup steps as before you shouldn't need to install these directly
 
 ## Overview
 
