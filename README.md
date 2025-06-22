@@ -1,5 +1,16 @@
 # Lynkr Technical Assessment
 
+## CHANGES
+Make sure to add a .env file in the backend folder with
+```
+WEATHERSTACK_API_KEY=YOUR_API_KEY
+```
+Also install
+```
+httpx
+python-dotenv
+```
+
 ## Overview
 
 Build a weather data system where users can submit weather requests and retrieve stored results by ID.
@@ -52,6 +63,11 @@ cd backend
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+**NEW** - Make sure to add a .env file in the backend folder with
+```
+WEATHERSTACK_API_KEY=YOUR_API_KEY
 ```
 
 **Note:** You'll need to activate the virtual environment each time you work on the backend

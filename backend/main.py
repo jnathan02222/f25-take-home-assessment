@@ -4,6 +4,21 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import uvicorn
 
+# For Weatherstack API
+import httpx
+from dotenv import load_dotenv
+import os
+load_dotenv()
+WEATHERSTACK_API_KEY = os.getenv('WEATHERSTACK_API_KEY')
+
+# To generate random ids
+import random
+import string
+
+def get_random_id(length: int = 12):
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(random.choices(alphabet, k=length))
+
 app = FastAPI(title="Weather Data System", version="1.0.0")
 
 app.add_middleware(
@@ -34,7 +49,22 @@ async def create_weather_request(request: WeatherRequest):
     3. Stores combined data with unique ID in memory
     4. Returns the ID to frontend
     """
-    pass
+
+    # I saw the requests library in the requirements.txt, but an async library is best practice
+    # We don't want to be blocked by this request
+    async with httpx.AsyncClient() as client:
+        # It's not possible to get weather data by date, since I'm on free-tier
+        # Otherwise I would use the endpoint below:
+        # f"http://api.weatherstack.com/historical?access_key={WEATHERSTACK_API_KEY}&query={request.location}&historical_date={request.date}
+        response = await client.get(f"http://api.weatherstack.com/current?access_key={WEATHERSTACK_API_KEY}&query={request.location}")
+    
+    # In production we're probably not going to use memory storage, so I'm going to ignore possible race-conditions that may come with accessing the same dictionary across requests
+    new_id = get_random_id()
+    while new_id in weather_storage:
+        new_id = get_random_id()
+    weather_storage[new_id] = response.json()
+
+    return {"id": new_id}
 
 @app.get("/weather/{weather_id}")
 async def get_weather_data(weather_id: str):
@@ -44,9 +74,8 @@ async def get_weather_data(weather_id: str):
     """
     if weather_id not in weather_storage:
         raise HTTPException(status_code=404, detail="Weather data not found")
-    
-    return weather_storage[weather_id]
 
+    return weather_storage[weather_id]
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
